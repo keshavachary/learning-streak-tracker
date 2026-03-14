@@ -1,57 +1,86 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 
-export default function HistoryPage() {
+export default function Home() {
 
-  const [dates, setDates] = useState<string[]>([])
+  const [data, setData] = useState({
+    streak: 0,
+    totalDays: 0,
+    lastStudied: ""
+  })
 
-  const loadHistory = async () => {
-    const res = await fetch("/api/history")
-    const data = await res.json()
-    setDates(data.history)
+  const loadData = async () => {
+    const res = await fetch("/api/streak")
+    const result = await res.json()
+    setData(result)
   }
 
   useEffect(() => {
-    loadHistory()
+    loadData()
   }, [])
 
-  return (
-    <main className="min-h-screen flex flex-col items-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-10">
+  const markStudied = async () => {
+    const res = await fetch("/api/study", {
+      method: "POST"
+    })
 
-      <h1 className="text-4xl font-bold text-white mb-8">
-        📚 Study History
+    if (res.ok) {
+      await loadData()
+      alert("Study recorded for today ✅")
+    }
+  }
+
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4">
+
+      {/* Title */}
+      <h1 className="text-3xl md:text-4xl font-bold mb-10 text-center">
+        📚 Daily Learning Streak Tracker
       </h1>
 
-      <div className="bg-white rounded-xl shadow-lg p-8 w-[400px]">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 w-full max-w-4xl">
 
-        {dates.length === 0 ? (
-          <div className="text-center text-gray-500">
-            📭 No study history yet
-          </div>
-        ) : (
-          <ul className="space-y-4">
-            {dates.map((date, index) => (
-              <li
-                key={index}
-                className="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow-sm"
-              >
-                <span className="font-medium">{date}</span>
-                <span className="text-green-500 font-semibold">✔ Studied</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* Current Streak */}
+        <div className="bg-white text-black p-6 rounded-xl shadow text-center">
+          <p className="text-gray-500">🔥 Current Streak</p>
+          <h2 className="text-3xl font-bold">{data.streak}</h2>
+          <p className="text-gray-400">days</p>
+        </div>
+
+        {/* Total Study Days */}
+        <div className="bg-white text-black p-6 rounded-xl shadow text-center">
+          <p className="text-gray-500">📊 Total Study Days</p>
+          <h2 className="text-3xl font-bold">{data.totalDays}</h2>
+          <p className="text-gray-400">days</p>
+        </div>
+
+        {/* Last Studied */}
+        <div className="bg-white text-black p-6 rounded-xl shadow text-center">
+          <p className="text-gray-500">📅 Last Studied</p>
+          <h2 className="font-semibold text-lg">
+            {data.lastStudied || "Not yet"}
+          </h2>
+        </div>
 
       </div>
 
-      <Link
-        href="/"
-        className="mt-6 bg-white text-purple-600 px-6 py-2 rounded-lg shadow hover:scale-105 transition"
+      {/* Button */}
+      <button
+        onClick={markStudied}
+        className="bg-orange-500 hover:bg-orange-600 px-8 py-3 rounded-lg font-semibold shadow transition"
       >
-        ← Back to Dashboard
-      </Link>
+        I Studied Today 🚀
+      </button>
+
+      {/* History Link */}
+      <a
+        href="/history"
+        className="mt-6 underline text-lg hover:text-gray-200"
+      >
+        View Study History
+      </a>
 
     </main>
   )
